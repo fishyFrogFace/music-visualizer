@@ -2,19 +2,25 @@ let song;
 let fft;
 let started = false;
 
+function removeTrailingZeros(arr) {
+    const lastNonZeroIndex = arr.findLastIndex(element => element !== 0);
+    return arr.slice(0, lastNonZeroIndex + 1);
+}
+
 function preload() {
     song = loadSound('swing.mp3');  // Replace with your audio file path
 }
+
 function setup() {
     createCanvas(windowWidth, windowHeight);
     angleMode(DEGREES);
-    fft = new p5.FFT();
+    fft = new p5.FFT(0.8, 1024); // Use 512 bins, a power of two
 
-    // Show a message to click to start the audio
+    // Show a message prompting the user to start the audio
     textAlign(CENTER, CENTER);
     textSize(32);
     fill(255);
-    text('Click to start', width / 2, height / 2);
+    text('Click to start/stop', width / 2, height / 2);
 }
 
 function draw() {
@@ -25,15 +31,24 @@ function draw() {
     noFill();
     translate(width / 2, height / 2);
 
-    let spectrum = fft.analyze();
-    console.log(spectrum.length)
+    let spectrum = removeTrailingZeros(fft.analyze());
+    console.log(spectrum)
+    console.log(spectrum.filter(i => i === 0).length)
+    let binsPerDegree = spectrum.length / 360; // Calculate how many bins per degree
+    let threshold = 10; // Set a threshold value to ignore low amplitudes
+
     beginShape();
     for (let i = 0; i < 360; i++) {
-        let amp = spectrum[i];
-        let r = map(amp, 0, 256, 20, 200);
-        let x = r * cos(i);
-        let y = r * sin(i);
-        vertex(x, y);
+        let binIndex = floor(i * binsPerDegree); // Find the corresponding bin
+        let amp = spectrum[binIndex];
+
+        if (amp > threshold) { // Only draw if amplitude exceeds the threshold
+            let r = map(amp, 0, 256, 20, 200);
+            let angle = i; // Use i directly as the angle in degrees
+            let x = r * cos(angle);
+            let y = r * sin(angle);
+            vertex(x, y);
+        }
     }
     endShape(CLOSE);
 }
