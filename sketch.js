@@ -39,8 +39,7 @@ function draw() {
         let amp = spectrum[i];
 
         if (amp > threshold) {  // Only draw if amplitude exceeds the threshold
-            let logAmp = log(amp + 1) / log(256 + 1);  // Normalized logarithmic amplitude
-            let r1 = map(logAmp, 0, 1, 20, 200);  // Map to inner radius
+            let r1 = map(amp, 0, 256, 20, 200);  // Map directly to inner radius
             let r2 = r1 + 50;  // The outer radius defines the bar's length
             let angle = i * anglePerBar;  // Start angle for this bar
 
