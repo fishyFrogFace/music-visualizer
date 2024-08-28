@@ -11,7 +11,7 @@ function preload() {
 function setup() {
     createCanvas(windowWidth, windowHeight);
     angleMode(DEGREES);
-    fft = new p5.FFT(0.8, 1024);  // Using 1024 bins, a power of two
+    fft = new p5.FFT(0.8, 64);  // Reduce bins to 64 for thicker bars
 
     // Show a message prompting the user to start the audio
     textAlign(CENTER, CENTER);
@@ -24,30 +24,45 @@ function draw() {
     if (!started) return;
 
     background(0);
-    stroke(255);
-    noFill();
+    stroke(255, 0, 0);  // Set the border (stroke) color (red in this case)
+    fill(0, 0, 255);  // Set the fill color (blue in this case)
     translate(width / 2, height / 2);
 
     let spectrum = removeZeros(fft.analyze());
-    let binsPerDegree = spectrum.length / 360;  // Calculate how many bins per degree
+    let numBars = spectrum.length;  // Number of bars equals the number of bins
+    let anglePerBar = 360 / numBars;  // Each bar covers this angle
     let threshold = 0;  // Set a threshold value to ignore low amplitudes
 
-    beginShape();
-    for (let i = 0; i < 360; i++) {
-        let binIndex = floor(i * binsPerDegree);  // Find the corresponding bin
-        let amp = spectrum[binIndex];
+    let barThickness = anglePerBar;  // Bar thickness matches the angle they cover
+
+    for (let i = 0; i < numBars; i++) {
+        let amp = spectrum[i];
 
         if (amp > threshold) {  // Only draw if amplitude exceeds the threshold
-            // Apply logarithmic scaling to the amplitude
             let logAmp = log(amp + 1) / log(256 + 1);  // Normalized logarithmic amplitude
-            let r = map(logAmp, 0, 1, 20, 200);  // Map to radius
-            let angle = i;  // Use i directly as the angle in degrees
-            let x = r * cos(angle);
-            let y = r * sin(angle);
-            vertex(x, y);
+            let r1 = map(logAmp, 0, 1, 20, 200);  // Map to inner radius
+            let r2 = r1 + 50;  // The outer radius defines the bar's length
+            let angle = i * anglePerBar;  // Start angle for this bar
+
+            // Calculate the corners of the bar
+            let x1 = r1 * cos(angle - barThickness / 2);
+            let y1 = r1 * sin(angle - barThickness / 2);
+            let x2 = r2 * cos(angle - barThickness / 2);
+            let y2 = r2 * sin(angle - barThickness / 2);
+
+            let x3 = r2 * cos(angle + barThickness / 2);
+            let y3 = r2 * sin(angle + barThickness / 2);
+            let x4 = r1 * cos(angle + barThickness / 2);
+            let y4 = r1 * sin(angle + barThickness / 2);
+
+            beginShape();
+            vertex(x1, y1);
+            vertex(x2, y2);
+            vertex(x3, y3);
+            vertex(x4, y4);
+            endShape(CLOSE);
         }
     }
-    endShape(CLOSE);
 }
 
 function mousePressed() {
