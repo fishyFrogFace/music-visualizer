@@ -2,10 +2,7 @@ let song;
 let fft;
 let started = false;
 
-function removeTrailingZeros(arr) {
-    const lastNonZeroIndex = arr.findLastIndex(element => element !== 0);
-    return arr.slice(0, lastNonZeroIndex + 1);
-}
+const removeZeros = (arr) => arr.filter(index => index !== 0)
 
 function preload() {
     song = loadSound('swing.mp3');  // Replace with your audio file path
@@ -31,11 +28,11 @@ function draw() {
     noFill();
     translate(width / 2, height / 2);
 
-    let spectrum = removeTrailingZeros(fft.analyze());
+    let spectrum = removeZeros(fft.analyze());
     console.log(spectrum)
     console.log(spectrum.filter(i => i === 0).length)
     let binsPerDegree = spectrum.length / 360; // Calculate how many bins per degree
-    let threshold = 10; // Set a threshold value to ignore low amplitudes
+    let threshold = 0; // Set a threshold value to ignore low amplitudes
 
     beginShape();
     for (let i = 0; i < 360; i++) {
