@@ -1,45 +1,45 @@
-let song;
-let fft;
-let started = false;
-
 function preload() {
-    song = loadSound('swing.mp3');  // Replace with your audio file path
+    sound = loadSound('swing.mp3');
 }
-function setup() {
-    createCanvas(windowWidth, windowHeight);
-    angleMode(DEGREES);
-    fft = new p5.FFT();
 
-    // Show a message to click to start the audio
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    fill(255);
-    text('Click to start', width / 2, height / 2);
+function setup() {
+    let cnv = createCanvas(100, 100);
+    cnv.mouseClicked(togglePlay);
+    fft = new p5.FFT();
+    sound.amp(1);
 }
 
 function draw() {
-    if (!started) return;
-
-    background(0);
-    stroke(255);
-    noFill();
-    translate(width / 2, height / 2);
+    background(220);
 
     let spectrum = fft.analyze();
+    noStroke();
+    fill(255, 0, 255);
+    for (let i = 0; i < spectrum.length; i++) {
+        let x = map(i, 0, spectrum.length, 0, width);
+        let h = -height + map(spectrum[i], 0, 255, height, 0);
+        rect(x, height, width / spectrum.length, h)
+    }
+
+    let waveform = fft.waveform();
+    noFill();
     beginShape();
-    for (let i = 0; i < 360; i++) {
-        let amp = spectrum[i];
-        let r = map(amp, 0, 256, 20, 200);
-        let x = r * cos(i);
-        let y = r * sin(i);
+    stroke(20);
+    console.log(waveform.length, spectrum.length)
+    for (let i = 0; i < waveform.length; i++) {
+        let x = map(i, 0, waveform.length, 0, width);
+        let y = map(waveform[i], -1, 1, 0, height);
         vertex(x, y);
     }
-    endShape(CLOSE);
+    endShape();
+
+    text('tap to play', 20, 20);
 }
 
-function mousePressed() {
-    if (!started) {
-        song.play();
-        started = true;
+function togglePlay() {
+    if (sound.isPlaying()) {
+        sound.pause();
+    } else {
+        sound.loop();
     }
 }
