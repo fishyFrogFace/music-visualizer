@@ -5,16 +5,17 @@ const numBars = 60;
 
 const removeZeros = (arr) => arr.filter(index => index !== 0);
 
+const range = (size, startAt = 0) => [...Array(size).keys()].map(i => i + startAt)
+
 function preload() {
-    song = loadSound('swing.mp3');  // Replace with your audio file path
+    song = loadSound('swing.mp3');
 }
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
     angleMode(DEGREES);
-    fft = new p5.FFT(0.8, 1024);  // Keep a high number of FFT bins for more detail
+    fft = new p5.FFT(0.8, 1024);
 
-    // Show a message prompting the user to start the audio
     textAlign(CENTER, CENTER);
     textSize(90);
     background(16, 126, 125);
@@ -36,12 +37,12 @@ function draw() {
     const anglePerBar = 360 / numBars; // each bar covers this angle
     const threshold = 0;  // set to ignore low amplitudes
 
-    for (let i = 0; i < numBars; i++) {
-        const startIdx = i * binsPerBar;
+    range(numBars - 1).forEach((bar) => {
+        const startIdx = bar * binsPerBar;
         const endIdx = startIdx + binsPerBar;
 
         // average the amplitude over the bins for this bar
-        const ampSum = Array.from({ length: endIdx - startIdx + 1 }, (_, offset) => startIdx + offset)
+        const ampSum = range(endIdx - startIdx + 1, startIdx)
             .map((frequencyIndex) => spectrum[frequencyIndex])
             .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
@@ -50,7 +51,7 @@ function draw() {
         if (amp > threshold) {
             const r1 = 0; // start from the center (radius = 0)
             const r2 = map(amp, 0, 256, 50, 400);  // extend the bars outward
-            const angle = i * anglePerBar;  // start angle for this bar
+            const angle = bar * anglePerBar;  // start angle for this bar
 
             // corners of the bar
             const x1 = r1 * cos(angle - anglePerBar / 2);
@@ -70,7 +71,7 @@ function draw() {
             vertex(x4, y4);
             endShape(CLOSE);
         }
-    }
+    })
 }
 
 // make this check if playing and pause if it is, or play if it isn't
