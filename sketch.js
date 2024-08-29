@@ -19,7 +19,7 @@ const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
 function preload() {
-  song = loadSound(songList[2]);
+  song = loadSound(songList[1]);
 }
 
 function setup() {
@@ -94,4 +94,8 @@ function mousePressed() {
     song.pause();
     started = false;
   }
+}
+
+function doubleClicked() {
+  location.reload();
 }
