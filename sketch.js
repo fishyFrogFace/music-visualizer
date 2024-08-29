@@ -1,7 +1,7 @@
 let song;
 let fft;
 let started = false;
-let numBars = 60;  // Set the desired number of bars
+const numBars = 60;
 
 const removeZeros = (arr) => arr.filter(index => index !== 0);
 
@@ -16,8 +16,10 @@ function setup() {
 
     // Show a message prompting the user to start the audio
     textAlign(CENTER, CENTER);
-    textSize(32);
+    textSize(90);
+    background(16, 126, 125);
     fill(255);
+    stroke(16, 126, 125)
     text('Click to start/stop', width / 2, height / 2);
 }
 
@@ -29,37 +31,37 @@ function draw() {
     fill(227, 181, 5);
     translate(width / 2, height / 2);
 
-    let spectrum = removeZeros(fft.analyze());
-    let binsPerBar = floor(spectrum.length / numBars);  // Number of bins per bar
-    let anglePerBar = 360 / numBars;  // Each bar covers this angle
-    let threshold = 0;  // Set a threshold value to ignore low amplitudes
+    const spectrum = fft.analyze();
+    const binsPerBar = floor(spectrum.length / numBars);
+    const anglePerBar = 360 / numBars; // each bar covers this angle
+    const threshold = 0;  // set to ignore low amplitudes
 
     for (let i = 0; i < numBars; i++) {
-        let startIdx = i * binsPerBar;
-        let endIdx = startIdx + binsPerBar;
+        const startIdx = i * binsPerBar;
+        const endIdx = startIdx + binsPerBar;
 
-        // Average the amplitude over the bins for this bar
-        let ampSum = 0;
-        for (let j = startIdx; j < endIdx; j++) {
-            ampSum += spectrum[j];
-        }
-        let amp = ampSum / binsPerBar;
+        // average the amplitude over the bins for this bar
+        const ampSum = Array.from({ length: endIdx - startIdx + 1 }, (_, offset) => startIdx + offset)
+            .map((frequencyIndex) => spectrum[frequencyIndex])
+            .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
-        if (amp > threshold) {  // Only draw if amplitude exceeds the threshold
-            let r1 = 0;  // Start from the center (radius = 0)
-            let r2 = map(amp, 0, 256, 50, 400);  // Extend the bars outward
-            let angle = i * anglePerBar;  // Start angle for this bar
+        const amp = ampSum / binsPerBar;
 
-            // Calculate the corners of the bar
-            let x1 = r1 * cos(angle - anglePerBar / 2);
-            let y1 = r1 * sin(angle - anglePerBar / 2);
-            let x2 = r2 * cos(angle - anglePerBar / 2);
-            let y2 = r2 * sin(angle - anglePerBar / 2);
+        if (amp > threshold) {
+            const r1 = 0; // start from the center (radius = 0)
+            const r2 = map(amp, 0, 256, 50, 400);  // extend the bars outward
+            const angle = i * anglePerBar;  // start angle for this bar
 
-            let x3 = r2 * cos(angle + anglePerBar / 2);
-            let y3 = r2 * sin(angle + anglePerBar / 2);
-            let x4 = r1 * cos(angle + anglePerBar / 2);
-            let y4 = r1 * sin(angle + anglePerBar / 2);
+            // corners of the bar
+            const x1 = r1 * cos(angle - anglePerBar / 2);
+            const y1 = r1 * sin(angle - anglePerBar / 2);
+            const x2 = r2 * cos(angle - anglePerBar / 2);
+            const y2 = r2 * sin(angle - anglePerBar / 2);
+
+            const x3 = r2 * cos(angle + anglePerBar / 2);
+            const y3 = r2 * sin(angle + anglePerBar / 2);
+            const x4 = r1 * cos(angle + anglePerBar / 2);
+            const y4 = r1 * sin(angle + anglePerBar / 2);
 
             beginShape();
             vertex(x1, y1);
