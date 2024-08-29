@@ -24,9 +24,9 @@ function setup() {
 function draw() {
     if (!started) return;
 
-    background(0);
-    stroke(255, 0, 0);  // Set the border (stroke) color (red in this case)
-    fill(0, 0, 255);  // Set the fill color (blue in this case)
+    background(16, 126, 125);
+    stroke(255, 255, 255);
+    fill(227, 181, 5);
     translate(width / 2, height / 2);
 
     let spectrum = removeZeros(fft.analyze());
@@ -71,12 +71,13 @@ function draw() {
     }
 }
 
+// make this check if playing and pause if it is, or play if it isn't
 function mousePressed() {
     if (!started) {
         song.play();
         started = true;
     } else {
-        song.stop();
+        song.pause();
         started = false;
     }
 }
