@@ -1,6 +1,5 @@
 let song;
 let fft;
-let started = false;
 const numBars = 60;
 
 const songList = [
@@ -19,7 +18,7 @@ const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
 function preload() {
-  song = loadSound(songList[1]);
+  song = loadSound(songList[5]);
 }
 
 function setup() {
@@ -36,7 +35,7 @@ function setup() {
 }
 
 function draw() {
-  if (!started) return;
+  if (!song.isPlaying()) return;
 
   background(16, 126, 125);
   stroke(255, 255, 255);
@@ -85,14 +84,15 @@ function draw() {
   });
 }
 
-// make this check if playing and pause if it is, or play if it isn't
 function mousePressed() {
-  if (!started) {
-    song.play();
-    started = true;
+  if (mouseButton === LEFT) {
+    if (song.isPlaying()) {
+      song.pause();
+    } else {
+      song.play();
+    }
   } else {
-    song.pause();
-    started = false;
+    song.stop();
   }
 }
 
