@@ -3,22 +3,25 @@ let fft;
 const numBars = 60;
 
 const songList = [
-  "ES_8-Bit Hop - Ash Sculptures.mp3",
-  "ES_8-bit Sheriff - Wave Saver.mp3",
-  "ES_Feline (Instrumental Version) - Kadant.mp3",
-  "ES_Forget About Today - Blue Fret.mp3",
-  "ES_Old Grump - Smartface.mp3",
-  "ES_Sayonara - Rocket Jr.mp3",
-  "ES_Time to Level Up - Josef Bel Habib.mp3",
+  { id: 0, mp3: "ES_8-Bit Hop - Ash Sculptures.mp3" },
+  { id: 1, mp3: "ES_8-bit Sheriff - Wave Saver.mp3" },
+  { id: 2, mp3: "ES_Feline (Instrumental Version) - Kadant.mp3" },
+  { id: 3, mp3: "ES_Forget About Today - Blue Fret.mp3" },
+  { id: 4, mp3: "ES_Old Grump - Smartface.mp3" },
+  { id: 5, mp3: "ES_Sayonara - Rocket Jr.mp3" },
+  { id: 6, mp3: "ES_Time to Level Up - Josef Bel Habib.mp3" },
 ];
 
-const removeZeros = (arr) => arr.filter((index) => index !== 0);
+const removeTrailingZeros = (arr, cap = 650) => {
+  const lastNonZeroIndex = arr.findLastIndex((element) => element !== 0);
+  return arr.slice(0, lastNonZeroIndex + 1 < cap ? cap : lastNonZeroIndex + 1);
+};
 
 const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
 function preload() {
-  song = loadSound(songList[5]);
+  song = loadSound(songList[2].mp3);
 }
 
 function setup() {
@@ -42,7 +45,9 @@ function draw() {
   fill(227, 181, 5);
   translate(width / 2, height / 2);
 
-  const spectrum = fft.analyze();
+  //const spectrum = fft.analyze();
+  const spectrum = removeTrailingZeros(fft.analyze());
+  //console.log("spectrum.length", spectrum.length);
   const binsPerBar = floor(spectrum.length / numBars);
   const anglePerBar = 360 / numBars; // each bar covers this angle
   const threshold = 0; // set to ignore low amplitudes
