@@ -1,6 +1,7 @@
 let song;
 let fft;
 const numBars = 60;
+const bins = 1024;
 
 const songList = [
   { id: 0, mp3: "ES_8-Bit Hop - Ash Sculptures.mp3" },
@@ -20,6 +21,28 @@ const removeTrailingZeros = (arr, cap = 650) => {
 const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
+const frequencyWeighting = (amp, bin) => {
+  if (bin < 8) {
+    return amp * 0.6;
+  } else if (bin < 15) {
+    return amp * 0.7;
+  } else if (bin < 23) {
+    return amp * 0.8;
+  } else if (bin < 28) {
+    return amp * 0.9;
+  } else if (bin < 32) {
+    return amp;
+  } else if (bin < 38) {
+    return amp * 1.1;
+  } else if (bin < 45) {
+    return amp * 1.2;
+  } else if (bin < 53) {
+    return amp * 1.3;
+  } else {
+    return amp * 1.4;
+  }
+};
+
 function preload() {
   song = loadSound(songList[2].mp3);
 }
@@ -27,7 +50,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
-  fft = new p5.FFT(0.8, 1024);
+  fft = new p5.FFT();
 
   textAlign(CENTER, CENTER);
   textSize(90);
@@ -61,7 +84,7 @@ function draw() {
       .map((frequencyIndex) => spectrum[frequencyIndex])
       .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
-    const amp = ampSum / binsPerBar;
+    const amp = frequencyWeighting(ampSum / binsPerBar, bar);
 
     if (amp > threshold) {
       const r1 = 0; // start from the center (radius = 0)
