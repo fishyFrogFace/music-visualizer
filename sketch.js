@@ -64,8 +64,9 @@ function draw() {
   if (!song.isPlaying()) return;
 
   background(16, 126, 125);
+  strokeWeight(1);
   stroke(255, 255, 255);
-  fill(227, 181, 5);
+  fill(98, 60, 234);
   translate(width / 2, height / 2);
 
   //const spectrum = fft.analyze();
@@ -85,10 +86,11 @@ function draw() {
       .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
     const amp = frequencyWeighting(ampSum / binsPerBar, bar);
+    const adjustedAmp = amp / 2 + 100;
 
-    if (amp > threshold) {
+    if (adjustedAmp > threshold) {
       const r1 = 0; // start from the center (radius = 0)
-      const r2 = map(amp, 0, 256, 50, 400); // extend the bars outward
+      const r2 = map(adjustedAmp, 0, 356, 0, 356); // extend the bars outward
       const angle = bar * anglePerBar; // start angle for this bar
 
       // corners of the bar
@@ -110,6 +112,11 @@ function draw() {
       endShape(CLOSE);
     }
   });
+
+  //fill(98, 60, 234);
+  stroke(0, 0, 0);
+  strokeWeight(0);
+  circle(0, 0, 205);
 }
 
 function mousePressed() {
