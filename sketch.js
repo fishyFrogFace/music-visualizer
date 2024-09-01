@@ -44,7 +44,7 @@ const frequencyWeighting = (amp, bin) => {
 };
 
 function preload() {
-  song = loadSound(songList[3].mp3);
+  song = loadSound(songList[2].mp3);
 }
 
 function setup() {
@@ -76,6 +76,8 @@ function draw() {
   const anglePerBar = 360 / numBars; // each bar covers this angle
   const threshold = 0; // set to ignore low amplitudes
 
+  const adjustedAmps = [];
+
   range(numBars).forEach((bar) => {
     const startIdx = bar * binsPerBar;
     const endIdx = startIdx + binsPerBar;
@@ -87,11 +89,38 @@ function draw() {
 
     const amp = frequencyWeighting(ampSum / binsPerBar, bar);
     //const amp = ampSum / binsPerBar;
-    const adjustedAmp = amp / 2 + 100;
+    const adjustedAmp = amp / 2 + 140;
 
-    if (adjustedAmp > threshold) {
+    adjustedAmps.push(adjustedAmp);
+  });
+
+  range(numBars).forEach((bar) => {
+    let ampAfterAvg = adjustedAmps[bar];
+
+    if (bar < 4 || bar > 55) {
+      const prevAmp =
+        bar === 0 ? adjustedAmps[numBars - 1] : adjustedAmps[bar - 1];
+      const prevAmp2 =
+        bar === 0
+          ? adjustedAmps[numBars - 2]
+          : bar === 1
+          ? adjustedAmps[numBars - 1]
+          : adjustedAmps[bar - 1];
+      const nextAmp =
+        bar === numBars - 1 ? adjustedAmps[0] : adjustedAmps[bar + 1];
+      const nextAmp2 =
+        bar === numBars - 1
+          ? adjustedAmps[1]
+          : bar === numBars - 2
+          ? adjustedAmps[0]
+          : adjustedAmps[bar + 2];
+      ampAfterAvg =
+        (adjustedAmps[bar] + nextAmp + nextAmp2 + prevAmp + prevAmp2) / 5;
+    }
+
+    if (ampAfterAvg > threshold) {
       const r1 = 0; // start from the center (radius = 0)
-      const r2 = map(adjustedAmp, 0, 356, 0, 356); // extend the bars outward
+      const r2 = map(ampAfterAvg, 0, 356, 0, 356); // extend the bars outward
       const angle = bar * anglePerBar; // start angle for this bar
 
       // corners of the bar
