@@ -48,7 +48,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(800, 500);
   angleMode(DEGREES);
   fft = new p5.FFT();
 
