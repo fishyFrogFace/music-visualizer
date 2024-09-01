@@ -33,18 +33,18 @@ const frequencyWeighting = (amp, bin) => {
   } else if (bin < 32) {
     return amp;
   } else if (bin < 38) {
-    return amp * 1.1;
+    return amp * 1.25;
   } else if (bin < 45) {
-    return amp * 1.2;
+    return amp * 1.5;
   } else if (bin < 53) {
-    return amp * 1.3;
+    return amp * 1.75;
   } else {
-    return amp * 1.4;
+    return amp * 2;
   }
 };
 
 function preload() {
-  song = loadSound(songList[2].mp3);
+  song = loadSound(songList[3].mp3);
 }
 
 function setup() {
@@ -76,7 +76,7 @@ function draw() {
   const anglePerBar = 360 / numBars; // each bar covers this angle
   const threshold = 0; // set to ignore low amplitudes
 
-  range(numBars - 1).forEach((bar) => {
+  range(numBars).forEach((bar) => {
     const startIdx = bar * binsPerBar;
     const endIdx = startIdx + binsPerBar;
 
@@ -86,6 +86,7 @@ function draw() {
       .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
     const amp = frequencyWeighting(ampSum / binsPerBar, bar);
+    //const amp = ampSum / binsPerBar;
     const adjustedAmp = amp / 2 + 100;
 
     if (adjustedAmp > threshold) {
