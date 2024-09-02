@@ -18,6 +18,11 @@ const removeTrailingZeros = (arr, cap = 650) => {
   return arr.slice(0, lastNonZeroIndex + 1 < cap ? cap : lastNonZeroIndex + 1);
 };
 
+const getAmp = (index, adjustedAmps) => {
+  console.log(index, index + numBars, (index + numBars) % numBars);
+  return adjustedAmps[(index + numBars) % numBars];
+};
+
 const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
@@ -95,28 +100,15 @@ function draw() {
   });
 
   range(numBars).forEach((bar) => {
-    let ampAfterAvg = adjustedAmps[bar];
-
-    if (bar < 4 || bar > 55) {
-      const prevAmp =
-        bar === 0 ? adjustedAmps[numBars - 1] : adjustedAmps[bar - 1];
-      const prevAmp2 =
-        bar === 0
-          ? adjustedAmps[numBars - 2]
-          : bar === 1
-          ? adjustedAmps[numBars - 1]
-          : adjustedAmps[bar - 1];
-      const nextAmp =
-        bar === numBars - 1 ? adjustedAmps[0] : adjustedAmps[bar + 1];
-      const nextAmp2 =
-        bar === numBars - 1
-          ? adjustedAmps[1]
-          : bar === numBars - 2
-          ? adjustedAmps[0]
-          : adjustedAmps[bar + 2];
-      ampAfterAvg =
-        (adjustedAmps[bar] + nextAmp + nextAmp2 + prevAmp + prevAmp2) / 5;
-    }
+    const ampAfterAvg =
+      bar < 5 || bar > numBars - 5
+        ? (adjustedAmps[bar] +
+            getAmp(bar - 1, adjustedAmps) +
+            getAmp(bar - 2, adjustedAmps) +
+            getAmp(bar + 1, adjustedAmps) +
+            getAmp(bar + 2, adjustedAmps)) /
+          5
+        : adjustedAmps[bar];
 
     if (ampAfterAvg > threshold) {
       const r1 = 0; // start from the center (radius = 0)
