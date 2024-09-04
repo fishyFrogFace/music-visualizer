@@ -136,10 +136,6 @@ function mousePressed() {
       song.play();
     }
   } else {
-    song.stop();
+    location.reload();
   }
-}
-
-function doubleClicked() {
-  location.reload();
 }
