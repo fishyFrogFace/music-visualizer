@@ -11,6 +11,7 @@ const songList = [
   { id: 4, mp3: "ES_Old Grump - Smartface.mp3" },
   { id: 5, mp3: "ES_Sayonara - Rocket Jr.mp3" },
   { id: 6, mp3: "ES_Time to Level Up - Josef Bel Habib.mp3" },
+  { id: 7, mp3: "theme.mp3" },
 ];
 
 const removeTrailingZeros = (arr, cap = 650) => {
@@ -28,38 +29,36 @@ const range = (size, startAt = 0) =>
 
 const frequencyWeighting = (amp, bin) => {
   if (bin < 8) {
-    return amp * 0.6;
-  } else if (bin < 15) {
-    return amp * 0.7;
-  } else if (bin < 23) {
     return amp * 0.8;
-  } else if (bin < 28) {
+  } else if (bin < 15) {
     return amp * 0.9;
-  } else if (bin < 32) {
+  } else if (bin < 23) {
+    return amp;
+  } else if (bin < 28) {
     return amp;
   } else if (bin < 38) {
-    return amp * 1.25;
+    return amp * 1.1;
   } else if (bin < 45) {
-    return amp * 1.5;
+    return amp * 1.1;
   } else if (bin < 53) {
-    return amp * 1.75;
+    return amp * 1.2;
   } else {
-    return amp * 2;
+    return amp * 1.4;
   }
 };
 
 function preload() {
-  song = loadSound(songList[2].mp3);
+  song = loadSound(songList[7].mp3);
 }
 
 function setup() {
-  createCanvas(800, 500);
+  createCanvas(800, 600);
   angleMode(DEGREES);
   fft = new p5.FFT();
 
   textAlign(CENTER, CENTER);
   textSize(90);
-  background(16, 126, 125);
+  background(0, 112, 144);
   fill(255);
   stroke(16, 126, 125);
   text("Click to start/stop", width / 2, height / 2);
@@ -68,77 +67,65 @@ function setup() {
 function draw() {
   if (!song.isPlaying()) return;
 
-  background(16, 126, 125);
-  strokeWeight(1);
+  background(0, 112, 144);
+  strokeWeight(0);
+  fill(30, 30, 36);
   stroke(255, 255, 255);
-  fill(98, 60, 234);
   translate(width / 2, height / 2);
 
-  //const spectrum = fft.analyze();
   const spectrum = removeTrailingZeros(fft.analyze());
-  //console.log("spectrum.length", spectrum.length);
-  const binsPerBar = floor(spectrum.length / numBars);
-  const anglePerBar = 360 / numBars; // each bar covers this angle
-  const threshold = 0; // set to ignore low amplitudes
-
   const adjustedAmps = [];
 
-  range(numBars).forEach((bar) => {
-    const startIdx = bar * binsPerBar;
-    const endIdx = startIdx + binsPerBar;
+  // Determine the number of points for the curve, e.g., 360 points for a full circle
+  const numPoints = 120;
+  const anglePerPoint = 360 / numPoints;
 
-    // average the amplitude over the bins for this bar
+  // Adjust the spectrum to fit the number of points
+  const binsPerPoint = floor(spectrum.length / numPoints);
+
+  // Calculate the adjusted amplitudes
+  range(numPoints).forEach((i) => {
+    const startIdx = i * binsPerPoint;
+    const endIdx = startIdx + binsPerPoint;
+
+    // Average amplitude for the point
     const ampSum = range(endIdx - startIdx + 1, startIdx)
       .map((frequencyIndex) => spectrum[frequencyIndex])
       .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
-    const amp = frequencyWeighting(ampSum / binsPerBar, bar);
-    //const amp = ampSum / binsPerBar;
-    const adjustedAmp = amp / 2 + 140;
+    const amp = frequencyWeighting(ampSum / binsPerPoint, i);
+    const adjustedAmp = amp / 3 + 140;
 
     adjustedAmps.push(adjustedAmp);
   });
 
-  range(numBars).forEach((bar) => {
+  beginShape();
+  range(numPoints).forEach((i) => {
+    // Smooth the amplitude by averaging it with neighboring values
     const ampAfterAvg =
-      bar < 5 || bar > numBars - 5
-        ? (adjustedAmps[bar] +
-            getAmp(bar - 1, adjustedAmps) +
-            getAmp(bar - 2, adjustedAmps) +
-            getAmp(bar + 1, adjustedAmps) +
-            getAmp(bar + 2, adjustedAmps)) /
+      i < 5 || i > numPoints - 5
+        ? (adjustedAmps[i] +
+            getAmp(i - 1, adjustedAmps) +
+            getAmp(i - 2, adjustedAmps) +
+            getAmp(i + 1, adjustedAmps) +
+            getAmp(i + 2, adjustedAmps)) /
           5
-        : adjustedAmps[bar];
+        : adjustedAmps[i];
 
-    if (ampAfterAvg > threshold) {
-      const r1 = 0; // start from the center (radius = 0)
-      const r2 = map(ampAfterAvg, 0, 356, 0, 356); // extend the bars outward
-      const angle = bar * anglePerBar; // start angle for this bar
+    const r = map(ampAfterAvg, 0, 356, 0, 356);
+    const angle = i * anglePerPoint;
 
-      // corners of the bar
-      const x1 = r1 * cos(angle - anglePerBar / 2);
-      const y1 = r1 * sin(angle - anglePerBar / 2);
-      const x2 = r2 * cos(angle - anglePerBar / 2);
-      const y2 = r2 * sin(angle - anglePerBar / 2);
+    const x = r * cos(angle);
+    const y = r * sin(angle);
 
-      const x3 = r2 * cos(angle + anglePerBar / 2);
-      const y3 = r2 * sin(angle + anglePerBar / 2);
-      const x4 = r1 * cos(angle + anglePerBar / 2);
-      const y4 = r1 * sin(angle + anglePerBar / 2);
-
-      beginShape();
-      vertex(x1, y1);
-      vertex(x2, y2);
-      vertex(x3, y3);
-      vertex(x4, y4);
-      endShape(CLOSE);
-    }
+    curveVertex(x, y); // Create smooth curve
   });
+  endShape(CLOSE);
 
-  //fill(98, 60, 234);
-  stroke(0, 0, 0);
-  strokeWeight(0);
-  circle(0, 0, 205);
+  // Optional: draw inner circle for reference
+  circle(0, 0, 350);
+  fill(30, 30, 36);
+  circle(0, 0, 300);
 }
 
 function mousePressed() {
