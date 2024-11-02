@@ -1,6 +1,6 @@
 let song;
 let fft;
-const numBars = 60;
+const numPoints = 120;
 const bins = 1024;
 
 const songList = [
@@ -19,17 +19,15 @@ const removeTrailingZeros = (arr, cap = 650) => {
   return arr.slice(0, lastNonZeroIndex + 1 < cap ? cap : lastNonZeroIndex + 1);
 };
 
-const getAmp = (index, adjustedAmps) => {
-  console.log(index, index + numBars, (index + numBars) % numBars);
-  return adjustedAmps[(index + numBars) % numBars];
-};
+const getAmp = (index, adjustedAmps) =>
+  adjustedAmps[(index + numPoints) % numPoints];
 
 const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
 const frequencyWeighting = (amp, bin) => {
   if (bin < 8) {
-    return amp * 0.8;
+    return amp * 0.3;
   } else if (bin < 15) {
     return amp * 0.9;
   } else if (bin < 23) {
@@ -48,7 +46,7 @@ const frequencyWeighting = (amp, bin) => {
 };
 
 function preload() {
-  song = loadSound(songList[7].mp3);
+  song = loadSound("children’s horror slow.mp3");
 }
 
 function setup() {
@@ -67,28 +65,25 @@ function setup() {
 function draw() {
   if (!song.isPlaying()) return;
 
-  background(0, 112, 144);
+  background(255, 255, 255);
   strokeWeight(0);
-  fill(30, 30, 36);
+
   stroke(255, 255, 255);
   translate(width / 2, height / 2);
-
+  fill(255, 0, 0);
+  circle(0, 0, 280);
+  fill(0, 0, 0);
   const spectrum = removeTrailingZeros(fft.analyze());
   const adjustedAmps = [];
 
-  // Determine the number of points for the curve, e.g., 360 points for a full circle
-  const numPoints = 120;
   const anglePerPoint = 360 / numPoints;
 
-  // Adjust the spectrum to fit the number of points
   const binsPerPoint = floor(spectrum.length / numPoints);
 
-  // Calculate the adjusted amplitudes
   range(numPoints).forEach((i) => {
     const startIdx = i * binsPerPoint;
     const endIdx = startIdx + binsPerPoint;
 
-    // Average amplitude for the point
     const ampSum = range(endIdx - startIdx + 1, startIdx)
       .map((frequencyIndex) => spectrum[frequencyIndex])
       .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
@@ -101,7 +96,6 @@ function draw() {
 
   beginShape();
   range(numPoints).forEach((i) => {
-    // Smooth the amplitude by averaging it with neighboring values
     const ampAfterAvg =
       i < 5 || i > numPoints - 5
         ? (adjustedAmps[i] +
@@ -112,20 +106,24 @@ function draw() {
           5
         : adjustedAmps[i];
 
-    const r = map(ampAfterAvg, 0, 356, 0, 356);
+    const r = ampAfterAvg; // max: (255 * 1.4) / 3 + 140 = 257
     const angle = i * anglePerPoint;
 
     const x = r * cos(angle);
     const y = r * sin(angle);
 
+    strokeWeight(2);
+    stroke(255);
+    //point(x, y);
+    strokeWeight(0);
+
     curveVertex(x, y); // Create smooth curve
   });
   endShape(CLOSE);
 
-  // Optional: draw inner circle for reference
-  circle(0, 0, 350);
-  fill(30, 30, 36);
-  circle(0, 0, 300);
+  //circle(0, 0, 350);
+  //fill(30, 30, 36);
+  //circle(0, 0, 300);
 }
 
 function mousePressed() {
