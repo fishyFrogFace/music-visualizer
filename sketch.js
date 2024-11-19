@@ -27,7 +27,7 @@ const range = (size, startAt = 0) =>
 
 const frequencyWeighting = (amp, bin) => {
   if (bin < 8) {
-    return amp * 0.3;
+    return amp * 0.5;
   } else if (bin < 15) {
     return amp * 0.9;
   } else if (bin < 23) {
@@ -58,22 +58,23 @@ function setup() {
   textSize(90);
   background(0, 112, 144);
   fill(255);
-  stroke(16, 126, 125);
+  //stroke(16, 126, 125);
   text("Click to start/stop", width / 2, height / 2);
 }
 
 function draw() {
   if (!song.isPlaying()) return;
 
-  background(255, 255, 255);
+  background(68, 151, 26);
   strokeWeight(0);
 
   stroke(255, 255, 255);
   translate(width / 2, height / 2);
-  fill(255, 0, 0);
+  //fill(255, 0, 0);
   circle(0, 0, 280);
   fill(0, 0, 0);
-  const spectrum = removeTrailingZeros(fft.analyze());
+  const spectrum = removeTrailingZeros(fft.analyze()).slice(20, 650);
+  console.log(spectrum);
   const adjustedAmps = [];
 
   const anglePerPoint = 360 / numPoints;
