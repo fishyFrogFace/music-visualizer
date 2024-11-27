@@ -82,49 +82,47 @@ function draw() {
   // removing trailing zeroes because high frequencies often does not have any amplitude, which makes the circle look uneven
   const spectrum = removeTrailingZeros(fft.analyze());
 
-  const adjustedAmps = [];
-
   const anglePerPoint = 360 / numPoints;
-
   const binsPerPoint = floor(spectrum.length / numPoints);
 
-  range(numPoints).forEach((i) => {
+  const adjustedAmps = range(numPoints).map((i) => {
     const startIdx = i * binsPerPoint;
     const endIdx = startIdx + binsPerPoint;
 
     const ampSum = range(endIdx - startIdx + 1, startIdx)
       .map((frequencyIndex) => spectrum[frequencyIndex])
-      .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
+      .reduce((sum, currentValue) => sum + currentValue, 0);
 
     const amp = frequencyWeighting(ampSum / binsPerPoint, i);
     const adjustedAmp = amp / 3 + 140;
 
-    adjustedAmps.push(adjustedAmp);
+    return adjustedAmp;
   });
 
-  beginShape();
-  range(numPoints).forEach((i) => {
-    /*     const mirror =
-      i > numPoints - 10 ? adjustedAmps[numPoints - i] : adjustedAmps[i]; */
-
-    const r = adjustedAmps[i]; // max: (255 * 1.4) / 3 + 140 = 257
+  // calculate points on the circle
+  const points = adjustedAmps.map((r, i) => {
     const angle = i * anglePerPoint;
 
     const x = r * cos(angle);
     const y = r * sin(angle);
 
-    strokeWeight(2);
-    stroke(255);
-    //point(x, y);
-    strokeWeight(0);
+    return { x, y };
+  });
 
+  // extend points array for smooth curve wrapping
+  const extendedPoints = [
+    points[points.length - 2],
+    points[points.length - 1],
+    ...points,
+    points[0],
+    points[1],
+  ];
+
+  beginShape();
+  extendedPoints.forEach(({ x, y }) => {
     curveVertex(x, y); // Create smooth curve
   });
-  endShape(CLOSE);
-
-  //circle(0, 0, 350);
-  //fill(30, 30, 36);
-  //circle(0, 0, 300);
+  endShape();
 }
 
 function mousePressed() {
