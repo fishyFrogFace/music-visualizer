@@ -26,30 +26,22 @@ const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
 const frequencyWeighting = (amp, bin) => {
-  if (bin < 5 || bin > 120 - 5) {
-    return amp * 1.8;
-  } else if (bin < 10 || bin > 120 - 10) {
-    return amp * 1.7;
-  } else if (bin < 15 || bin > 120 - 15) {
-    return amp * 1.6;
-  } else if (bin < 20 || bin > 120 - 20) {
-    return amp * 1.5;
-  } else if (bin < 25 || bin > 120 - 25) {
-    return amp * 1.4;
-  } else if (bin < 30 || bin > 120 - 30) {
-    return amp * 1.3;
-  } else if (bin < 35 || bin > 120 - 35) {
-    return amp * 1.2;
-  } else if (bin < 40 || bin > 120 - 40) {
-    return amp * 1.1;
-  } else if (bin < 45 || bin > 120 - 45) {
-    return amp;
-  } else if (bin < 50 || bin > 120 - 50) {
+  if (bin < 8) {
+    return amp * 0.6;
+  } else if (bin < 15) {
     return amp * 0.9;
-  } else if (bin < 55 || bin > 120 - 55) {
-    return amp * 0.8;
+  } else if (bin < 23) {
+    return amp;
+  } else if (bin < 28) {
+    return amp;
+  } else if (bin < 38) {
+    return amp * 1.1;
+  } else if (bin < 45) {
+    return amp * 1.1;
+  } else if (bin < 53) {
+    return amp * 1.2;
   } else {
-    return amp * 0.7;
+    return amp * 1.4;
   }
 };
 
@@ -90,20 +82,18 @@ function draw() {
   // removing trailing zeroes because high frequencies often does not have any amplitude, which makes the circle look uneven
   const spectrum = removeTrailingZeros(fft.analyze());
 
-  const mirroredSpectrum = mirror(spectrum);
-
   const adjustedAmps = [];
 
   const anglePerPoint = 360 / numPoints;
 
-  const binsPerPoint = floor(mirroredSpectrum.length / numPoints);
+  const binsPerPoint = floor(spectrum.length / numPoints);
 
   range(numPoints).forEach((i) => {
     const startIdx = i * binsPerPoint;
     const endIdx = startIdx + binsPerPoint;
 
     const ampSum = range(endIdx - startIdx + 1, startIdx)
-      .map((frequencyIndex) => mirroredSpectrum[frequencyIndex])
+      .map((frequencyIndex) => spectrum[frequencyIndex])
       .reduce((ampSum, currentValue) => ampSum + currentValue, 0);
 
     const amp = frequencyWeighting(ampSum / binsPerPoint, i);
