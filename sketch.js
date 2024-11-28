@@ -1,7 +1,10 @@
 let song;
 let fft;
-const numPoints = 120;
+const numPoints = 60;
 const bins = 1024;
+const allAdjustedAmps = [];
+const fromFile = true;
+let fileAmpCounter = 0;
 
 const songList = [
   { id: 0, mp3: "ES_8-Bit Hop - Ash Sculptures.mp3" },
@@ -57,8 +60,28 @@ const mirror = (analysisArray) => {
   return reverse.concat(analysisArray);
 };
 
+const calculateAdjustedAmps = (spectrum) => {
+  const binsPerPoint = floor(spectrum.length / numPoints);
+
+  const adjustedAmps = range(numPoints).map((i) => {
+    const startIdx = i * binsPerPoint;
+    const endIdx = startIdx + binsPerPoint;
+
+    const ampSum = range(endIdx - startIdx + 1, startIdx)
+      .map((frequencyIndex) => spectrum[frequencyIndex])
+      .reduce((sum, currentValue) => sum + currentValue, 0);
+
+    const amp = frequencyWeighting(ampSum / binsPerPoint, i);
+    const adjustedAmp = amp / 3 + 140;
+
+    return adjustedAmp;
+  });
+
+  allAdjustedAmps.push(adjustedAmps);
+};
+
 function preload() {
-  song = loadSound(songList[4].mp3);
+  song = loadSound("d1f11aaf-a5d0-4a33-8aaa-859d846d4fa1.mp3");
 }
 
 function setup() {
@@ -88,23 +111,13 @@ function draw() {
 
   // removing trailing zeroes because high frequencies often does not have any amplitude, which makes the circle look uneven
   const spectrum = removeTrailingZeros(fft.analyze());
+  const adjustedAmps = fromFile
+    ? amps[fileAmpCounter]
+    : calculateAdjustedAmps(spectrum);
+
+  fileAmpCounter += 1;
 
   const anglePerPoint = 360 / numPoints;
-  const binsPerPoint = floor(spectrum.length / numPoints);
-
-  const adjustedAmps = range(numPoints).map((i) => {
-    const startIdx = i * binsPerPoint;
-    const endIdx = startIdx + binsPerPoint;
-
-    const ampSum = range(endIdx - startIdx + 1, startIdx)
-      .map((frequencyIndex) => spectrum[frequencyIndex])
-      .reduce((sum, currentValue) => sum + currentValue, 0);
-
-    const amp = frequencyWeighting(ampSum / binsPerPoint, i);
-    const adjustedAmp = amp / 3 + 140;
-
-    return adjustedAmp;
-  });
 
   // calculate points on the circle
   const points = adjustedAmps.map((r, i) => {
@@ -131,6 +144,12 @@ function draw() {
     curveVertex(x, y);
   });
   endShape();
+}
+
+function keyPressed() {
+  if (key === "s" || key === "S") {
+    saveJSON(allAdjustedAmps, "adjustedAmps.json");
+  }
 }
 
 function mousePressed() {
