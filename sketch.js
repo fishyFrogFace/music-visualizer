@@ -26,22 +26,29 @@ const range = (size, startAt = 0) =>
   [...Array(size).keys()].map((i) => i + startAt);
 
 const frequencyWeighting = (amp, bin) => {
-  if (bin < 8) {
+  const binFactor = numPoints / 12;
+  if (bin < binFactor) {
     return amp * 0.6;
-  } else if (bin < 15) {
+  } else if (bin < binFactor * 2) {
+    return amp * 0.7;
+  } else if (bin < binFactor * 3) {
+    return amp * 0.8;
+  } else if (bin < binFactor * 4) {
     return amp * 0.9;
-  } else if (bin < 23) {
+  } else if (bin < binFactor * 5) {
     return amp;
-  } else if (bin < 28) {
-    return amp;
-  } else if (bin < 38) {
+  } else if (bin < binFactor * 6) {
     return amp * 1.1;
-  } else if (bin < 45) {
-    return amp * 1.1;
-  } else if (bin < 53) {
+  } else if (bin < binFactor * 7) {
     return amp * 1.2;
-  } else {
+  } else if (bin < binFactor * 8) {
+    return amp * 1.3;
+  } else if (bin < binFactor * 9) {
     return amp * 1.4;
+  } else if (bin < binFactor * 10) {
+    return amp * 1.5;
+  } else {
+    return amp * 1.6;
   }
 };
 
@@ -51,7 +58,7 @@ const mirror = (analysisArray) => {
 };
 
 function preload() {
-  song = loadSound("d1f11aaf-a5d0-4a33-8aaa-859d846d4fa1.mp3");
+  song = loadSound(songList[4].mp3);
 }
 
 function setup() {
@@ -119,8 +126,9 @@ function draw() {
   ];
 
   beginShape();
+
   extendedPoints.forEach(({ x, y }) => {
-    curveVertex(x, y); // Create smooth curve
+    curveVertex(x, y);
   });
   endShape();
 }
