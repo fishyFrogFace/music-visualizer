@@ -1,9 +1,9 @@
 let song;
 let fft;
-const numPoints = 60;
+const numPoints = 30;
 const bins = 1024;
 const allAdjustedAmps = [];
-const fromFile = true;
+const fromFile = false;
 let fileAmpCounter = 0;
 
 const songList = [
@@ -78,6 +78,7 @@ const calculateAdjustedAmps = (spectrum) => {
   });
 
   allAdjustedAmps.push(adjustedAmps);
+  return adjustedAmps;
 };
 
 function preload() {
@@ -97,6 +98,30 @@ function setup() {
   text("Click to start/stop", width / 2, height / 2);
 }
 
+const exaggerateLocalPeaks = (amps, factor = 1.01) => {
+  const len = amps.length;
+  return amps.map((amp, i) => {
+    if (amp === 140) {
+      return amp;
+    }
+    // get neighboring indices with wrap-around
+    const prevIndex = (i - 1 + len) % len;
+    const nextIndex = (i + 1) % len;
+
+    // compute the average of neighboring amplitudes
+    const neighborAvg = (amps[prevIndex] + amps[nextIndex]) / 2;
+
+    const diff = amp - neighborAvg;
+
+    // if the current amplitude is higher than neighbors, exaggerate the peak
+    if (diff > 0) {
+      return amp + diff * factor;
+    } else {
+      return amp;
+    }
+  });
+};
+
 function draw() {
   if (!song.isPlaying()) return;
 
@@ -113,9 +138,11 @@ function draw() {
   const spectrum = removeTrailingZeros(fft.analyze());
   const adjustedAmps = fromFile
     ? amps[fileAmpCounter]
-    : calculateAdjustedAmps(spectrum);
+    : exaggerateLocalPeaks(calculateAdjustedAmps(spectrum), 10);
 
   fileAmpCounter += 1;
+
+  console.log(adjustedAmps.length);
 
   const anglePerPoint = 360 / numPoints;
 
@@ -137,6 +164,15 @@ function draw() {
     points[0],
     points[1],
   ];
+
+  fill(255);
+  noStroke();
+  textSize(12);
+  textAlign(LEFT, TOP);
+  const displayText = adjustedAmps
+    .map((amp, index) => `Index ${index}: ${amp.toFixed(2)}`)
+    .join("\n");
+  text(displayText, -width / 2 + 10, -height / 2 + 10);
 
   beginShape();
 
