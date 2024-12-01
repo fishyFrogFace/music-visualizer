@@ -77,7 +77,6 @@ const calculateAdjustedAmps = (spectrum) => {
     return adjustedAmp;
   });
 
-  allAdjustedAmps.push(adjustedAmps);
   return adjustedAmps;
 };
 
@@ -122,6 +121,30 @@ const exaggerateLocalPeaks = (amps, factor = 1.01) => {
   });
 };
 
+const drawPoints = (points) => {
+  colorMode(HSB);
+  points.forEach(({ x, y, hue }) => {
+    stroke(hue, 100, 100);
+    fill(hue, 100, 100);
+    ellipse(x, y, 5, 5);
+  });
+  colorMode(RGB);
+};
+
+const drawNumbering = (points, anglePerPoint) => {
+  colorMode(HSB);
+  points.forEach(({ x, y, hue, index }) => {
+    fill(hue, 100, 100);
+    noStroke();
+    textSize(12);
+    const offsetX = 10 * cos(index * anglePerPoint);
+    const offsetY = 10 * sin(index * anglePerPoint);
+    text(index, x + offsetX, y + offsetY);
+  });
+
+  colorMode(RGB);
+};
+
 function draw() {
   if (!song.isPlaying()) return;
 
@@ -138,11 +161,13 @@ function draw() {
   const spectrum = removeTrailingZeros(fft.analyze());
   const adjustedAmps = fromFile
     ? amps[fileAmpCounter]
-    : exaggerateLocalPeaks(calculateAdjustedAmps(spectrum), 10);
+    : exaggerateLocalPeaks(calculateAdjustedAmps(spectrum), 10).map((amp) =>
+        Math.round(amp)
+      );
+
+  allAdjustedAmps.push(adjustedAmps);
 
   fileAmpCounter += 1;
-
-  console.log(adjustedAmps.length);
 
   const anglePerPoint = 360 / numPoints;
 
@@ -152,8 +177,9 @@ function draw() {
 
     const x = r * cos(angle);
     const y = r * sin(angle);
+    const hue = map(i, 0, numPoints, 0, 360);
 
-    return { x, y };
+    return { x, y, hue, index: i };
   });
 
   // extend points array for smooth curve wrapping
@@ -180,6 +206,9 @@ function draw() {
     curveVertex(x, y);
   });
   endShape();
+
+  drawPoints(points);
+  drawNumbering(points, anglePerPoint);
 }
 
 function keyPressed() {
